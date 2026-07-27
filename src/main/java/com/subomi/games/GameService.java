@@ -1,5 +1,6 @@
 package com.subomi.games;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Function;
@@ -7,8 +8,8 @@ import java.util.function.Function;
 public class GameService {
     private static GameStorage gameStorage = new GameStorage();
 
-    public static Game createGame() {
-        Game game = new Game();
+    public static Game createGame(int rounds) {
+        Game game = new Game(rounds);
 
         gameStorage.saveGame(game);
         
@@ -25,6 +26,10 @@ public class GameService {
 
     public static Game endGame(UUID gameId) {
         return changeGameState(gameId, (Game game) -> game.end());
+    }
+
+    public static Game addPlayersToGame(UUID gameId, List<Player> players) {
+        return changeGameState(gameId, (Game game) -> game.addPlayers(players));
     }
     
     private static Game changeGameState(UUID gameId, Function<Game, Boolean> stateChanger) {

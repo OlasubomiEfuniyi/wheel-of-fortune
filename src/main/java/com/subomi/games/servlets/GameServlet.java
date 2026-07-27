@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.subomi.games.controllers.GameController;
+import com.subomi.games.controllers.Helpers;
 
 @WebServlet(urlPatterns = {"/game/*"})
 public class GameServlet extends HttpServlet {

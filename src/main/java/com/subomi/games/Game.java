@@ -8,12 +8,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Game {
     private UUID gameId;
-    private int playerId;
     private int round;
     private int numberOfRounds;
 
     @JsonIgnore 
-    private HashMap<Integer, Player> players;
+    private HashMap<String, Player> players;
 
     @JsonIgnore 
     private GameBoard gameBoard;
@@ -21,7 +20,6 @@ public class Game {
     private GameState gameState;
 
     public Game(int numberOfRounds) {
-        this.playerId = 0;
         this.round = 1;
         this.numberOfRounds = numberOfRounds;
     }
@@ -67,7 +65,7 @@ public class Game {
     public boolean addPlayers(List<Player> players) {
         if (this.gameState == GameState.CREATED) {
             for(Player player: players) {
-                this.players.put(playerId++, player);
+                this.players.put(player.playerName(), player);
             }
             return true;
         }
@@ -76,8 +74,8 @@ public class Game {
         }
     }
 
-    public Player removePlayer(Integer playerId) {
-        return this.players.remove(playerId);
+    public Player removePlayer(String playerName) {
+        return this.players.remove(playerName);
     }
 
     public void nextRound() {
