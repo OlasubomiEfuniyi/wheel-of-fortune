@@ -12,6 +12,20 @@ import com.subomi.games.controllers.Helpers;
 public class GameServlet extends HttpServlet {
 
     @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+        String path = request.getServletPath();
+
+        switch(path) {
+            case "/game":
+                GameController.getGame(request, response);
+                break;
+            default:
+                Helpers.badRequest(response, badPath(path));
+                break;
+        }
+    }
+
+    @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
         String path = request.getServletPath();
 
@@ -19,13 +33,9 @@ public class GameServlet extends HttpServlet {
             case "/game/create":
                 GameController.createGame(request, response);
                 break;
-            case "/game/addPlayers":
-                GameController.addPlayers(request, response);
+            case "/game/nextRound":
+                GameController.nextGameRound(request, response);
                 break;
-            case "/game/removePlayer":
-                GameController.removePlayer(request, response);
-                break;
-        
             default:
                 Helpers.badRequest(response, badPath(path));
                 break;
@@ -47,9 +57,28 @@ public class GameServlet extends HttpServlet {
             case "/game/end":
                 GameController.endGame(request, response);
                 break;
+            case "/game/pause/":
+                GameController.pauseGame(request, response);
+                break;
+            case "/game/addPlayers":
+                GameController.addPlayers(request, response);
+                break;
             default:
                 Helpers.badRequest(response, badPath(path));
                 break;
+        }
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        String path = request.getServletPath();
+
+        switch (path) {
+            case "/game/removePlayer":
+                GameController.removePlayer(request, response);
+                break;
+            default:
+                Helpers.badRequest(response, badPath(path));
         }
     }
 

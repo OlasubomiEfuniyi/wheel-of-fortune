@@ -1,6 +1,7 @@
 package com.subomi.games;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 public class GameBoard {
     private String phrase;
@@ -10,10 +11,12 @@ public class GameBoard {
     }
 
     public void generatePhrase() {
-        //Update this.phrase
+        UUID uniqueId = UUID.randomUUID();
+
+        this.phrase = "I am a phrase " + uniqueId.toString();
     }
 
     public List<Integer> considerGuess(char c) {
-
+        return null;
     }
 }

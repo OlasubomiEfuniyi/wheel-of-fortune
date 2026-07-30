@@ -16,8 +16,35 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class Helpers {
-    public static void HandleGameStateChange(HttpServletRequest request, HttpServletResponse response, Function<UUID, Game> stateChanger) {
-        UUID gameId = UUID.fromString(request.getParameter(RequestParameters.GAME_ID));
+    public static UUID getGameId(HttpServletRequest request) {
+        String gameIdParameter = request.getParameter(RequestParameters.GAME_ID);
+        UUID gameId = null;
+
+        if (gameIdParameter == null) {
+            return null;
+        }
+
+        try {
+            gameId = UUID.fromString(gameIdParameter);
+        }
+        catch (IllegalArgumentException ex) {
+            return null;
+        }
+        
+        return gameId;
+    }
+
+    public static String getPlayerName(HttpServletRequest request) {
+        return request.getParameter(RequestParameters.PLAYER_NAME);
+    }
+
+    public static void handleGameStateChange(HttpServletRequest request, HttpServletResponse response, Function<UUID, Game> stateChanger) {
+        UUID gameId = getGameId(request);
+
+        if (gameId == null) {
+            badRequest(response, "Missing \"" + RequestParameters.GAME_ID + "\" request parameter, or invalid value provided.");
+            return;
+        }
 
         try {
             Game game = stateChanger.apply(gameId);
@@ -30,23 +57,28 @@ public class Helpers {
             }
         }
         catch(NoSuchElementException ex) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Helpers.badRequest(response, "Game not found");
+        }
+        catch (IllegalArgumentException ex) {
+            Helpers.badRequest(response, "Invalid gameId or playerName");
+        }
+    }
+
+    public static void writeJsonResponse(HttpServletResponse response, Object obj) {
+        try {
+            PrintWriter writer = response.getWriter();  
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            
+
+            writer.write(objectMapper.writeValueAsString(obj));
+            writer.flush();
         }
         catch (IOException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public static void writeJsonResponse(HttpServletResponse response, Object obj) throws IOException {
-        PrintWriter writer = response.getWriter();  
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json");
-        
-
-        writer.write(objectMapper.writeValueAsString(obj));
-        writer.flush();
     }
 
     public static void writeTextResponse(HttpServletResponse response, String message) throws IOException {

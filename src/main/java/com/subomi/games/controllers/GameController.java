@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.subomi.games.Game;
 import com.subomi.games.GameService;
 import com.subomi.games.Player;
+import com.subomi.games.exceptions.InvalidPlayerExcpetion;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,56 +31,91 @@ public class GameController {
         }
         catch (NumberFormatException ex) {
             Helpers.badRequest(response, "Invalid rounds parameter");
+            return;
         }
         
-        Game game = GameService.createGame(rounds);
-
+        Game game = null;
         try {
+            game = GameService.createGame(rounds);
+        }
+        catch (IllegalArgumentException ex) {
+            Helpers.badRequest(response, "Invalid nubmer of rounds.");
+            return;
+        }
+
+        if (game != null) {
             response.setStatus(HttpServletResponse.SC_CREATED);
             Helpers.writeJsonResponse(response, game);
-        }
-        catch (IOException ex) {
+        } 
+        else {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
         }
+
     }
 
     public static void startGame(HttpServletRequest request, HttpServletResponse response) {
-        Helpers.HandleGameStateChange(
+        Helpers.handleGameStateChange(
             request, 
             response, 
             (UUID gameId) -> GameService.startGame(gameId));
     }
 
     public static void resumeGame(HttpServletRequest request, HttpServletResponse response) {
-        Helpers.HandleGameStateChange(
+        Helpers.handleGameStateChange(
             request, 
             response, 
             (UUID gameId) -> GameService.resumeGame(gameId));
     }
 
     public static void endGame(HttpServletRequest request, HttpServletResponse response) {
-        Helpers.HandleGameStateChange(
+        Helpers.handleGameStateChange(
             request, 
             response, 
             (UUID gameId) -> GameService.endGame(gameId));
     }
 
-    public static void addPlayers(HttpServletRequest request, HttpServletResponse response) {
-        String body = null;
-        String gameIdParameter = request.getParameter(RequestParameters.GAME_ID);
-        UUID gameId = null;
-        List<Player> players = null;
+    public static void pauseGame(HttpServletRequest request, HttpServletResponse response) {
+        Helpers.handleGameStateChange(
+            request,
+            response, 
+            (UUID gameId) -> GameService.pauseGame(gameId));
+    }
 
-        if (gameIdParameter == null) {
-            Helpers.badRequest(response, "Missing \"" + RequestParameters.GAME_ID + "\"");
+    public static void getGame(HttpServletRequest request, HttpServletResponse response) {
+        UUID gameId = Helpers.getGameId(request);
+
+        if (gameId == null) {
+            Helpers.badRequest(response, "Missing \"" + RequestParameters.GAME_ID + "\" request parameter, or invalid value provided.");
             return;
         }
 
-        try {
-            gameId = UUID.fromString(gameIdParameter);
+        Game game = GameService.getGame(gameId);
+
+        if (game != null) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            Helpers.writeJsonResponse(response, game);
         }
-        catch (IllegalArgumentException ex) {
-            Helpers.badRequest(response, "Invalid " + RequestParameters.GAME_ID);
+        else {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
+    }
+
+    public static void nextGameRound(HttpServletRequest request, HttpServletResponse response) {
+        Helpers.handleGameStateChange(
+            request, 
+            response, 
+            (UUID gameId) -> GameService.nextGameRound(gameId));
+    }
+
+    public static void addPlayers(HttpServletRequest request, HttpServletResponse response) {
+        String body = null;
+        List<Player> players = null;
+        UUID gameId = Helpers.getGameId(request);
+
+        if (gameId == null) {
+            Helpers.badRequest(response, "Missing \"" + RequestParameters.GAME_ID + "\" request parameter, or invalid value provided.");
             return;
         }
 
@@ -95,12 +131,58 @@ public class GameController {
         }
         catch (JsonProcessingException ex) {
             Helpers.badRequest(response, "Invalid body");
+            return;
         }
 
-        GameService.addPlayersToGame(gameId, players);
+        Game game = null;
+
+        try {
+            game = GameService.addPlayersToGame(gameId, players);
+        }
+        catch (InvalidPlayerExcpetion ex) {
+            Helpers.badRequest(response, "Invalid player");
+            return;
+        }
+        catch (IllegalArgumentException ex) {
+            Helpers.badRequest(response, "Invalid gameId or players");
+            return;
+        }
+
+        if (game != null) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            Helpers.writeJsonResponse(response, game);
+        }
+        else {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
     }
 
     public static void removePlayer(HttpServletRequest request, HttpServletResponse response) {
+        UUID gameId = Helpers.getGameId(request);
+        String playerName = Helpers.getPlayerName(request);
 
+        if (playerName == null) {
+            Helpers.badRequest(response, "Missing \"" + RequestParameters.PLAYER_NAME + "\" request parameter");
+            return;
+        }
+
+        boolean isRemoved = false;
+        
+        try {
+            isRemoved = GameService.removePlayerFromGame(gameId, playerName);
+        }
+        catch (IllegalArgumentException ex) {
+            Helpers.badRequest(response, "Invalid gameId or playerName");
+            return;
+        }
+
+        if (isRemoved) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+        else {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
     }
 }
