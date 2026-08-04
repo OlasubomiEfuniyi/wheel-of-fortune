@@ -5,8 +5,6 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Function;
 
-import com.subomi.games.exceptions.InvalidPlayerExcpetion;
-
 public class GameService {
     private static GameStorage gameStorage = new GameStorage();
 
@@ -50,18 +48,16 @@ public class GameService {
         return gameStorage.getGame(gameId);
     }
 
-    public static Game addPlayersToGame(UUID gameId, List<Player> players) {
+    public static List<Player> addPlayersToGame(UUID gameId, List<Player> players) {
         if (gameId == null || players == null || players.size() == 0) {
             throw new IllegalArgumentException();
         }
 
-        boolean invalidPlayerExists = players.stream().anyMatch((player) -> !Player.isValidPlayer(player));
+        Game game = getGameById(gameId);
 
-        if (invalidPlayerExists) {
-            throw new InvalidPlayerExcpetion();
-        }
+        List<Player> addedPlayers = game.addPlayers(players);
 
-        return changeGameState(gameId, (Game game) -> game.addPlayers(players));
+        return addedPlayers;
     }
 
     public static boolean removePlayerFromGame(UUID gameId, String playerName) {
@@ -76,17 +72,24 @@ public class GameService {
             throw new IllegalArgumentException();
         }
 
-        Game game = gameStorage.getGame(gameId);
+        Game game = getGameById(gameId);
 
-        if (game == null) {
-            throw new NoSuchElementException("Game not found");
-        }
-        else if (stateChanger.apply(game)) {
+        if (stateChanger.apply(game)) {
             gameStorage.saveGame(game);
             return game;
         } 
         else {
             return null;
         }
+    }
+
+    private static Game getGameById(UUID gameId) {
+        Game game = gameStorage.getGame(gameId);
+
+        if (game == null) {
+            throw new NoSuchElementException("Game not found");
+        }
+
+        return game;
     }
 }

@@ -134,10 +134,10 @@ public class GameController {
             return;
         }
 
-        Game game = null;
+        List<Player> addedPlayers = null;
 
         try {
-            game = GameService.addPlayersToGame(gameId, players);
+            addedPlayers = GameService.addPlayersToGame(gameId, players);
         }
         catch (InvalidPlayerExcpetion ex) {
             Helpers.badRequest(response, "Invalid player");
@@ -148,9 +148,9 @@ public class GameController {
             return;
         }
 
-        if (game != null) {
+        if (addedPlayers != null) {
             response.setStatus(HttpServletResponse.SC_OK);
-            Helpers.writeJsonResponse(response, game);
+            Helpers.writeJsonResponse(response, addedPlayers);
         }
         else {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

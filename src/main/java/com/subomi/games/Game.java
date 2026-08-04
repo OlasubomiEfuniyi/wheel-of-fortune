@@ -1,5 +1,6 @@
 package com.subomi.games;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ public class Game {
             throw new IllegalArgumentException();
         }
         this.gameId = UUID.randomUUID();
-        this.round = 1;
+        this.round = -1;
         this.numberOfRounds = numberOfRounds;
         this.gameState = GameState.CREATED;
         this.players = new HashMap<>();
@@ -44,7 +45,8 @@ public class Game {
     public boolean start() {
         if (this.gameState == GameState.CREATED) {
             this.gameState = GameState.STARTED;
-            this.gameBoard.generatePhrase();
+            this.round = 1; 
+            this.gameBoard.generatePhrase(null);
             return true;
         }
         else {
@@ -65,6 +67,7 @@ public class Game {
     public boolean end() {
         if (isGameStarted()) {
             this.gameState = GameState.ENDED;
+            this.gameBoard.clear();
             return true;
         }
         else {
@@ -82,15 +85,33 @@ public class Game {
         }
     }
 
-    public boolean addPlayers(List<Player> players) {
+    public List<Player> addPlayers(List<Player> players) {
+        ArrayList<Player> addedPlayers = new ArrayList<>();
+
+        if (players == null || players.size() == 0) {
+            return null;
+        }
+
+        boolean containsInvalidPlayer = players.stream().anyMatch((player) -> !Player.isValidPlayer(player));
+
+        if (containsInvalidPlayer) {
+            return null;
+        }
+
         if (this.gameState == GameState.CREATED) {
             for(Player player: players) {
-                this.players.put(player.playerName(), player);
+                if (this.players.containsKey(player.getPlayerName())) {
+                    continue;
+                }
+
+                this.players.put(player.getPlayerName(), player);
+                addedPlayers.add(player);
             }
-            return true;
+
+            return addedPlayers;
         }
         else {
-            return false;
+            return null;
         }
     }
 
@@ -99,18 +120,45 @@ public class Game {
     }
 
     public Player removePlayer(String playerName) {
+        if (playerName == null) {
+            return null;
+        }
+
         return this.players.remove(playerName);
     }
 
     public boolean nextRound() {
+        if (!isGameOngoing()) {
+            return false;
+        }
+
         if (this.round + 1 <= this.numberOfRounds) {
             this.round++;
-            this.gameBoard.generatePhrase();
+            this.gameBoard.generatePhrase(null);
             return true;
         }
         else {
             return end();
         }
+    }
+
+    public GuessResult considerPlayerGuess(String playerName, String guess) {
+        if (playerName == null) {
+            return null;
+        }
+
+        if (guess == null) {
+            return null;
+        }
+
+        GuessResult result = this.gameBoard.considerGuess(guess);
+
+        // Update the player based on the guess result
+        this.players.get(playerName).handleGuessResult(result);
+
+        // Update the scoreboard based on the guess result
+        
+        return result;
     }
 
     public int getRound() {

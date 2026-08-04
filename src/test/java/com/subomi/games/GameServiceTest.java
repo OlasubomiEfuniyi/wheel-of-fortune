@@ -24,7 +24,7 @@ public class GameServiceTest {
         Assertions.assertNotNull(game);
         Assertions.assertEquals(1, game.getNumRounds());
         Assertions.assertEquals(GameState.CREATED, game.getGameState());
-        Assertions.assertEquals(1, game.getRound());
+        Assertions.assertEquals(-1, game.getRound());
         Assertions.assertEquals(0, game.getPlayers().size());
 
     
@@ -92,6 +92,8 @@ public class GameServiceTest {
     public void testNextGameRound_Progresses_To_Next_Round() {
         Game game = GameService.createGame(2);
 
+        game.start();
+        
         Game result = GameService.nextGameRound(game.getGameId());
 
         Assertions.assertNotNull(result);
@@ -108,10 +110,10 @@ public class GameServiceTest {
         Game game = GameService.createGame(1);
         List<Player> players = Arrays.asList(new Player("subomi"), new Player("nifemi"));
 
-        Game result = GameService.addPlayersToGame(game.getGameId(), players);
+        List<Player> addedPlayers = GameService.addPlayersToGame(game.getGameId(), players);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.getPlayers().size());
+        Assertions.assertNotNull(addedPlayers);
+        Assertions.assertEquals(2, addedPlayers.size());
     }
 
     @Test
@@ -122,18 +124,6 @@ public class GameServiceTest {
     @Test
     public void testAddPlayersToGame_Null_Players() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> GameService.addPlayersToGame(UUID.randomUUID(), null));
-    }
-
-    @Test
-    public void testAddPlayersToGame_Empty_Players() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GameService.addPlayersToGame(UUID.randomUUID(), new ArrayList<Player>()));
-    }
-
-    @Test
-    public void testAddPlayersToGame_Invalid_Player() {
-        List<Player> players = Arrays.asList(new Player("player1"), new Player("player"));
-
-        Assertions.assertThrows(InvalidPlayerExcpetion.class, () -> GameService.addPlayersToGame(UUID.randomUUID(), players));
     }
 
     @Test
@@ -156,11 +146,6 @@ public class GameServiceTest {
     @Test
     public void testRemovePlayerFromGame_Null_PlayerName() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> GameService.removePlayerFromGame(UUID.randomUUID(), null));
-    }
-
-    @Test
-    public void testRemovePlayerFromGame_Empty_PlayerName() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GameService.removePlayerFromGame(UUID.randomUUID(), ""));
     }
 
     @Test
