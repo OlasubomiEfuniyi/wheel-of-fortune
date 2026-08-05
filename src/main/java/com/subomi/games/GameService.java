@@ -66,6 +66,26 @@ public class GameService {
         }
         return changeGameState(gameId, (game) -> game.removePlayer(playerName) != null) != null;
     }
+
+    public static Player[] getLeaderboard(UUID gameId) {
+        if (gameId == null) {
+            throw new IllegalArgumentException();
+        }
+
+        Game game = getGameById(gameId);
+
+        return game.getLeaderboard();
+    }
+
+    public static GuessResult recordPlayerGuess(Guess guess) {
+        if (guess == null) {
+            throw new IllegalArgumentException();
+        }
+
+        Game game = getGameById(guess.gameId);
+
+        return game.considerPlayerGuess(guess.playerName, guess.guess);
+    }
     
     private static Game changeGameState(UUID gameId, Function<Game, Boolean> stateChanger) {
         if (gameId == null) {

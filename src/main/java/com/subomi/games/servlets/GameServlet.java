@@ -19,6 +19,9 @@ public class GameServlet extends HttpServlet {
             case "/game":
                 GameController.getGame(request, response);
                 break;
+            case "/game/leaderboard":
+                GameController.getLeaderboard(request, response);
+                break;
             default:
                 Helpers.badRequest(response, badPath(path));
                 break;
@@ -35,6 +38,9 @@ public class GameServlet extends HttpServlet {
                 break;
             case "/game/nextRound":
                 GameController.nextGameRound(request, response);
+                break;
+            case "/game/guess":
+                GameController.recordPlayerGuess(request, response);
                 break;
             default:
                 Helpers.badRequest(response, badPath(path));

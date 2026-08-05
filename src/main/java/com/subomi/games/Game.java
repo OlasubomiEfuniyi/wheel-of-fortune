@@ -1,6 +1,7 @@
 package com.subomi.games;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ public class Game {
     private UUID gameId;
     private int round;
     private int numberOfRounds;
+    private GameState gameState;
 
     @JsonIgnore 
     private HashMap<String, Player> players;
@@ -20,7 +22,7 @@ public class Game {
     @JsonIgnore 
     private GameBoard gameBoard;
 
-    private GameState gameState;
+    private Player[] leaderboard;
 
     public Game(int numberOfRounds) {
         if (numberOfRounds < 1 || numberOfRounds > MAX_NUMBER_OF_ROUNDS) {
@@ -46,6 +48,18 @@ public class Game {
         if (this.gameState == GameState.CREATED) {
             this.gameState = GameState.STARTED;
             this.round = 1; 
+
+            // Initialize the leaderboard with the same player objects
+            this.leaderboard = new Player[this.players.size()];
+            int index = 0;
+            for (Player player: this.players.values()) {
+                leaderboard[index++] = player;
+            }
+
+            // Order leaderboard by ascending order of player name initially
+            Arrays.sort(this.leaderboard, (Player p1, Player p2) -> p1.getPlayerName().compareTo(p2.getPlayerName()));
+            
+            // Generate the first phrase
             this.gameBoard.generatePhrase(null);
             return true;
         }
@@ -105,6 +119,7 @@ public class Game {
                 }
 
                 this.players.put(player.getPlayerName(), player);
+
                 addedPlayers.add(player);
             }
 
@@ -143,7 +158,7 @@ public class Game {
     }
 
     public GuessResult considerPlayerGuess(String playerName, String guess) {
-        if (playerName == null) {
+        if (playerName == null || !this.players.containsKey(playerName)) {
             return null;
         }
 
@@ -151,14 +166,16 @@ public class Game {
             return null;
         }
 
-        GuessResult result = this.gameBoard.considerGuess(guess);
+        GuessResult guessResult = this.gameBoard.considerGuess(guess);
+        Player player = this.players.get(playerName);
 
         // Update the player based on the guess result
-        this.players.get(playerName).handleGuessResult(result);
+        player.handleGuessResult(guessResult);
 
-        // Update the scoreboard based on the guess result
-        
-        return result;
+        // Update the leaderboard after the player update
+        updateLeaderboard();
+
+        return guessResult;
     }
 
     public int getRound() {
@@ -173,12 +190,23 @@ public class Game {
         return this.gameBoard.getPhrase();
     }
 
+    public Player[] getLeaderboard() {
+        return this.leaderboard;
+    }
+
     private boolean isGameOngoing() {
         return this.gameState == GameState.STARTED || this.gameState == GameState.RESUMED;
     }
 
     private boolean isGameStarted() {
         return this.gameState == GameState.STARTED || this.gameState == GameState.RESUMED || this.gameState == GameState.PAUSED;
+    }
+
+    /**
+     * Order leaderboard in descending order of player cash
+     */
+    private void updateLeaderboard() {
+        Arrays.sort(this.leaderboard, (Player p1, Player p2) -> -1 * Double.compare(p1.getCash(), p2.getCash()));
     }
 
 }
