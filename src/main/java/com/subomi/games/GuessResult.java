@@ -19,11 +19,13 @@ public class GuessResult {
         boolean isOneCharGuess,
         String reason,
         List<Integer> guessedPositions) {
+        this.guess = guess;
         this.isGuessValid = isGuessValid;
         this.isGuessCorrect = isGuessCorrect;
         this.didGuessCompletePhrase = didGuessCompletePhrase;
         this.isOneCharGuess = isOneCharGuess;
         this.guessedPositions = guessedPositions;
+        this.reason = reason;
     }
 
     public static GuessResult invalidGuess(String guess, boolean isOneCharGuess, String reason) {

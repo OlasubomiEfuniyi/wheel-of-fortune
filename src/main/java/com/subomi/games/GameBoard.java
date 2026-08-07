@@ -12,6 +12,10 @@ public class GameBoard {
     private HashSet<Character> guessedChars;
 
     public String getPhrase() {
+        if (this.phrase == null) {
+            return null;
+        }
+        
         return new String(this.phrase);
     }
 
@@ -25,23 +29,7 @@ public class GameBoard {
         UUID uniqueId = UUID.randomUUID();
 
         this.phrase = ("I am a phrase " + uniqueId.toString()).toLowerCase().toCharArray();
-        this.charPositions = new HashMap<>();
-        this.guessedChars = new HashSet<>();
-
-        // Map each char in the phrase to a list of positions where it occurs
-        for(int i = 0; i < this.phrase.length; i++) {
-            char c = this.phrase[i];
-
-            if (!Character.isAlphabetic(c)) {
-                continue;
-            }
-
-            if(!charPositions.containsKey(c)) {
-                charPositions.put(c, new ArrayList<>());
-            }
-
-            charPositions.get(c).add(i);
-        }
+        buildDataStructures();
     }
 
     /** 
@@ -123,5 +111,33 @@ public class GameBoard {
         }
 
         return true;
+    }
+
+    /**
+     * Set the phrase on the GameBoard
+     */
+    protected void setPhrase(String phrase) {
+        this.phrase = phrase.toLowerCase().toCharArray();
+        buildDataStructures();
+    }
+
+    private void buildDataStructures() {
+        this.charPositions = new HashMap<>();
+        this.guessedChars = new HashSet<>();
+
+        // Map each char in the phrase to a list of positions where it occurs
+        for(int i = 0; i < this.phrase.length; i++) {
+            char c = this.phrase[i];
+
+            if (!Character.isAlphabetic(c)) {
+                continue;
+            }
+
+            if(!charPositions.containsKey(c)) {
+                charPositions.put(c, new ArrayList<>());
+            }
+
+            charPositions.get(c).add(i);
+        }
     }
 }
