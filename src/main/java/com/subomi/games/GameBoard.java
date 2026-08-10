@@ -6,7 +6,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-public class GameBoard {
+import com.subomi.games.interfaces.IGameBoard;
+
+public class GameBoard implements IGameBoard {
+
     private char[] phrase;
     private HashMap<Character, List<Integer>> charPositions;
     private HashSet<Character> guessedChars;

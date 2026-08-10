@@ -4,12 +4,25 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class GameBoardTest {
+    private GameBoard gameBoard;
+
+    @BeforeEach
+    public void setup() {
+        gameBoard = new GameBoard();
+    }
+
+    @Test
+    public void testGeneratePhrase() {
+        Assertions.assertNull(gameBoard.getPhrase());
+        gameBoard.generatePhrase(null);
+        Assertions.assertNotNull(gameBoard.getPhrase());
+    }
     @Test
     public void testConsiderGuess_Correct_One_Letter_Guess_1() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess = "h";
@@ -27,7 +40,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Correct_One_Letter_Guess_2() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess = "H";
@@ -45,7 +57,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Correct_Whole_Phrase_Guess() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess = "hello hello hello";
@@ -63,7 +74,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Correct_One_Letter_Guess_Then_Whole_Phrase() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess1 = "h";
@@ -101,7 +111,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Incorrect_One_Letter_Guess() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess = "b";
@@ -118,7 +127,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Incorrect_Whole_Phrase_Guess() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess = "hello hello hellb";
@@ -135,7 +143,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Correct_Then_Incorrect_One_Letter_Guess() {
-        GameBoard gameBoard = new GameBoard();
         gameBoard.setPhrase("Hello Hello Hello");
 
         String guess1 = "l";
@@ -161,8 +168,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Multiple_Guesses_1() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         gameBoard.considerGuess("a");
@@ -179,8 +184,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Multiple_Guesses_2() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         gameBoard.considerGuess("a");
@@ -197,8 +200,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Already_Guessed() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         gameBoard.considerGuess("a");
@@ -213,8 +214,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Guess_After_Phrase_Guessed() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         gameBoard.considerGuess("a b c a b c");
@@ -229,8 +228,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Invalid_One_Letter_Guess() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess("@");
@@ -244,8 +241,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Invalid_Multiple_Letter_Guess_1() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess("a b c");
@@ -259,8 +254,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Invalid_Multiple_Letter_Guess_2() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess("a b c a b @");
@@ -275,8 +268,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Invalid_Multiple_Letter_Guess_3() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess("a b c a b   c");
@@ -291,8 +282,6 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Trims_Spaces_1() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess(" a b c a b c ");
@@ -302,13 +291,16 @@ public class GameBoardTest {
 
     @Test
     public void testConsiderGuess_Trims_Spaces_2() {
-        GameBoard gameBoard = new GameBoard();
-
         gameBoard.setPhrase("a b c a b c");
 
         GuessResult guessResult = gameBoard.considerGuess(" a ");
 
         Assertions.assertTrue(guessResult.isGuessCorrect);
+    }
+
+    @Test
+    public void testConsiderGuess_Null_Guess() {
+        Assertions.assertNull(gameBoard.considerGuess(null));
     }
 
     private boolean postionsEquality(List<Integer> expected, List<Integer> actual) {

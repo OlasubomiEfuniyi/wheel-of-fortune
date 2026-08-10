@@ -2,11 +2,15 @@ package com.subomi.games;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import com.subomi.games.interfaces.IGameBoard;
 
 public class GameStorageTest {
+
     @Test
     public void testSaveGame_Saves_New_Game() {
-        Game game = new Game(4);
+        Game game = new Game(Mockito.mock(IGameBoard.class), 4);
         GameStorage storage = new GameStorage();
 
         storage.saveGame(game);
@@ -16,8 +20,8 @@ public class GameStorageTest {
 
     @Test
     public void testSaveGame_Saves_Multiple_Games() {
-        Game game1 = new Game(1);
-        Game game2 = new Game(3);
+        Game game1 = new Game(Mockito.mock(IGameBoard.class), 1);
+        Game game2 = new Game(Mockito.mock(IGameBoard.class), 3);
 
         GameStorage storage = new GameStorage();
 

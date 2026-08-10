@@ -13,7 +13,7 @@ public class GameService {
             throw new IllegalArgumentException();
         }
 
-        Game game = new Game(rounds);
+        Game game = new Game(new GameBoard(), rounds);
 
         gameStorage.saveGame(game);
         

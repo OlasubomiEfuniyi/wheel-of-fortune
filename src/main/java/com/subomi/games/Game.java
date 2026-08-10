@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.subomi.games.interfaces.IGameBoard;
 
 public class Game {
     public static final int MAX_NUMBER_OF_ROUNDS = 10;
@@ -20,11 +21,11 @@ public class Game {
     private HashMap<String, Player> players;
 
     @JsonIgnore 
-    private GameBoard gameBoard;
+    private IGameBoard gameBoard;
 
     private Player[] leaderboard;
 
-    public Game(int numberOfRounds) {
+    public Game(IGameBoard gameBoard, int numberOfRounds) {
         if (numberOfRounds < 1 || numberOfRounds > MAX_NUMBER_OF_ROUNDS) {
             throw new IllegalArgumentException();
         }
@@ -33,7 +34,7 @@ public class Game {
         this.numberOfRounds = numberOfRounds;
         this.gameState = GameState.CREATED;
         this.players = new HashMap<>();
-        this.gameBoard = new GameBoard();
+        this.gameBoard = gameBoard;
     }
 
     public UUID getGameId() {
@@ -206,7 +207,15 @@ public class Game {
      * Order leaderboard in descending order of player cash
      */
     private void updateLeaderboard() {
-        Arrays.sort(this.leaderboard, (Player p1, Player p2) -> -1 * Double.compare(p1.getCash(), p2.getCash()));
+        Arrays.sort(this.leaderboard, (Player p1, Player p2) -> {
+            int result = Double.compare(p1.getCash(), p2.getCash());
+
+            if (result == 0) {
+                return p1.getPlayerName().compareTo(p2.getPlayerName());
+            }
+
+            return -1 * result;
+        });
     }
 
 }

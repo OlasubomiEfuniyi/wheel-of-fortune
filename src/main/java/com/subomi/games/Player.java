@@ -3,7 +3,6 @@ package com.subomi.games;
 public class  Player {
 
     private String playerName;
-    private int points;
     private double cash;
 
     public Player(String playerName) {
@@ -28,13 +27,17 @@ public class  Player {
      * reward for each position that they filled in, plus a whole phrase bonus.
      */
     public void handleGuessResult(GuessResult guessResult) {
+        // Ignore invalid guesses
+        if (guessResult == null || !guessResult.isGuessValid) {
+            return;
+        }
         // Update points based on if guess was correct and if it completed the phrase
         if (guessResult.isOneCharGuess && !guessResult.isGuessCorrect) {
             if (isVowel(guessResult.guess.charAt(0))) {
-                this.cash -= GameConstants.VOWEL_PRICE;
+                this.cash += GameConstants.VOWEL_PRICE;
             }
             else {
-                this.cash -= GameConstants.CONSONANT_PRICE;
+                this.cash += GameConstants.CONSONANT_PRICE;
             }
         }
         else if (guessResult.isOneCharGuess && guessResult.isGuessCorrect) {
@@ -69,7 +72,7 @@ public class  Player {
      * 
      * @return True if a name is valid, and False otherwise.
      */
-    public static boolean validPlayerName(String playerName) {
+    private static boolean validPlayerName(String playerName) {
         if (playerName == null) {
             return false;
         }
@@ -88,5 +91,20 @@ public class  Player {
 
     public double getCash() {
         return this.cash;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (!(other instanceof Player)) {
+            return false;
+        }
+
+        Player otherPlayer = (Player)other;
+
+        return this.playerName.equals(otherPlayer.playerName);
     }
 }
