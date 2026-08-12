@@ -9,8 +9,9 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.subomi.games.interfaces.IGameBoard;
+import com.subomi.games.interfaces.IWheelOfFortuneGame;
 
-public class Game {
+public class WheelOfFortuneGame implements IWheelOfFortuneGame {
     public static final int MAX_NUMBER_OF_ROUNDS = 10;
     private UUID gameId;
     private int round;
@@ -25,7 +26,7 @@ public class Game {
 
     private Player[] leaderboard;
 
-    public Game(IGameBoard gameBoard, int numberOfRounds) {
+    public WheelOfFortuneGame(IGameBoard gameBoard, int numberOfRounds) {
         if (numberOfRounds < 1 || numberOfRounds > MAX_NUMBER_OF_ROUNDS) {
             throw new IllegalArgumentException();
         }
@@ -195,11 +196,11 @@ public class Game {
         return this.leaderboard;
     }
 
-    private boolean isGameOngoing() {
+    public boolean isGameOngoing() {
         return this.gameState == GameState.STARTED || this.gameState == GameState.RESUMED;
     }
 
-    private boolean isGameStarted() {
+    public boolean isGameStarted() {
         return this.gameState == GameState.STARTED || this.gameState == GameState.RESUMED || this.gameState == GameState.PAUSED;
     }
 

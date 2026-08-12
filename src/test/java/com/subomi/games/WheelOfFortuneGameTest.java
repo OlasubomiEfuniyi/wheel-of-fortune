@@ -13,14 +13,14 @@ import org.mockito.Mockito;
 
 import com.subomi.games.interfaces.IGameBoard;
 
-public class GameTest {
-    private Game game;
+public class WheelOfFortuneGameTest {
+    private WheelOfFortuneGame game;
     private IGameBoard gameBoard;
 
     @BeforeEach
     public void setup() {
         gameBoard = Mockito.mock(IGameBoard.class);
-        game = new Game(gameBoard, 2);
+        game = new WheelOfFortuneGame(gameBoard, 2);
     }
 
     @Test
@@ -30,12 +30,12 @@ public class GameTest {
 
     @Test
     public void testGameConstructor_Invalid_Number_Of_Rounds_1() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new Game(gameBoard, 0));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new WheelOfFortuneGame(gameBoard, 0));
     }
 
     @Test
     public void testGameConstructor_Invalid_Number_Of_Rounds_2() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new Game(gameBoard, 11));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new WheelOfFortuneGame(gameBoard, 11));
     }
 
     @Test
@@ -253,7 +253,7 @@ public class GameTest {
 
     @Test
     public void testNextRound_Advances_Game() {
-        Game game = new Game(gameBoard, 3);
+        WheelOfFortuneGame game = new WheelOfFortuneGame(gameBoard, 3);
 
         Assertions.assertTrue(game.start());
 

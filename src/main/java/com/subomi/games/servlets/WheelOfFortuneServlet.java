@@ -5,22 +5,29 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.subomi.games.controllers.GameController;
+import com.subomi.games.GameStorage;
+import com.subomi.games.WheelOfFortuneGameService;
 import com.subomi.games.controllers.Helpers;
+import com.subomi.games.controllers.WheelOfFortuneGameController;
 
-@WebServlet(urlPatterns = {"/game/*"})
-public class GameServlet extends HttpServlet {
+@WebServlet(urlPatterns = {"/wof/*"})
+public class WheelOfFortuneServlet extends HttpServlet {
+    private WheelOfFortuneGameController controller;
+
+    public WheelOfFortuneServlet() {
+        this.controller = new WheelOfFortuneGameController(new WheelOfFortuneGameService(new GameStorage()));
+    }
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
         String path = request.getServletPath();
 
         switch(path) {
-            case "/game":
-                GameController.getGame(request, response);
+            case "/wof/":
+                controller.getGame(request, response);
                 break;
-            case "/game/leaderboard":
-                GameController.getLeaderboard(request, response);
+            case "/wof/leaderboard":
+                controller.getLeaderboard(request, response);
                 break;
             default:
                 Helpers.badRequest(response, badPath(path));
@@ -33,14 +40,14 @@ public class GameServlet extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/game/create":
-                GameController.createGame(request, response);
+            case "/wof/create":
+                controller.createGame(request, response);
                 break;
-            case "/game/nextRound":
-                GameController.nextGameRound(request, response);
+            case "/wof/nextRound":
+                controller.nextGameRound(request, response);
                 break;
-            case "/game/guess":
-                GameController.recordPlayerGuess(request, response);
+            case "/wof/guess":
+                controller.recordPlayerGuess(request, response);
                 break;
             default:
                 Helpers.badRequest(response, badPath(path));
@@ -54,20 +61,20 @@ public class GameServlet extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/game/start":
-                GameController.startGame(request, response);
+            case "/wof/start":
+                controller.startGame(request, response);
                 break;
-            case "/game/resume":
-                GameController.resumeGame(request, response);
+            case "/wof/resume":
+                controller.resumeGame(request, response);
                 break;
-            case "/game/end":
-                GameController.endGame(request, response);
+            case "/wof/end":
+                controller.endGame(request, response);
                 break;
-            case "/game/pause/":
-                GameController.pauseGame(request, response);
+            case "/wof/pause/":
+                controller.pauseGame(request, response);
                 break;
-            case "/game/addPlayers":
-                GameController.addPlayers(request, response);
+            case "/wof/addPlayers":
+                controller.addPlayers(request, response);
                 break;
             default:
                 Helpers.badRequest(response, badPath(path));
@@ -80,8 +87,8 @@ public class GameServlet extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/game/removePlayer":
-                GameController.removePlayer(request, response);
+            case "/wof/removePlayer":
+                controller.removePlayer(request, response);
                 break;
             default:
                 Helpers.badRequest(response, badPath(path));

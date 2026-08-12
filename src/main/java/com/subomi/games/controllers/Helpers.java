@@ -10,7 +10,7 @@ import java.util.function.Function;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.subomi.games.Game;
+import com.subomi.games.interfaces.IGame;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,7 +38,7 @@ public class Helpers {
         return request.getParameter(RequestParameters.PLAYER_NAME);
     }
 
-    public static void handleGameStateChange(HttpServletRequest request, HttpServletResponse response, Function<UUID, Game> stateChanger) {
+    public static void handleGameStateChange(HttpServletRequest request, HttpServletResponse response, Function<UUID, IGame> stateChanger) {
         UUID gameId = getGameId(request);
 
         if (gameId == null) {
@@ -47,7 +47,7 @@ public class Helpers {
         }
 
         try {
-            Game game = stateChanger.apply(gameId);
+            IGame game = stateChanger.apply(gameId);
             if (game != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 Helpers.writeJsonResponse(response, game);

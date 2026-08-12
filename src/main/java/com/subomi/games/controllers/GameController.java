@@ -8,18 +8,27 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.subomi.games.Game;
 import com.subomi.games.GameService;
+import com.subomi.games.GameType;
 import com.subomi.games.Guess;
 import com.subomi.games.GuessResult;
 import com.subomi.games.Player;
 import com.subomi.games.exceptions.InvalidPlayerExcpetion;
+import com.subomi.games.interfaces.IGame;
+import com.subomi.games.interfaces.IGameService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class GameController {
-    public static void createGame(HttpServletRequest request, HttpServletResponse response) {
+
+    private IGameService gameService;
+
+    public GameController(IGameService gameService) {
+        this.gameService = gameService;
+    }
+
+    public void createGame(HttpServletRequest request, HttpServletResponse response, GameType gameType) {
         String roundsParameter = request.getParameter("rounds");
 
         if (roundsParameter == null) {
@@ -37,9 +46,9 @@ public class GameController {
             return;
         }
         
-        Game game = null;
+        IGame game = null;
         try {
-            game = GameService.createGame(rounds);
+            game = this.gameService.createGame(rounds, gameType);
         }
         catch (IllegalArgumentException ex) {
             Helpers.badRequest(response, "Invalid nubmer of rounds.");
@@ -57,35 +66,35 @@ public class GameController {
 
     }
 
-    public static void startGame(HttpServletRequest request, HttpServletResponse response) {
+    public void startGame(HttpServletRequest request, HttpServletResponse response) {
         Helpers.handleGameStateChange(
             request, 
             response, 
-            (UUID gameId) -> GameService.startGame(gameId));
+            (UUID gameId) -> this.gameService.startGame(gameId));
     }
 
-    public static void resumeGame(HttpServletRequest request, HttpServletResponse response) {
+    public void resumeGame(HttpServletRequest request, HttpServletResponse response) {
         Helpers.handleGameStateChange(
             request, 
             response, 
-            (UUID gameId) -> GameService.resumeGame(gameId));
+            (UUID gameId) -> this.gameService.resumeGame(gameId));
     }
 
-    public static void endGame(HttpServletRequest request, HttpServletResponse response) {
+    public void endGame(HttpServletRequest request, HttpServletResponse response) {
         Helpers.handleGameStateChange(
             request, 
             response, 
-            (UUID gameId) -> GameService.endGame(gameId));
+            (UUID gameId) -> this.gameService.endGame(gameId));
     }
 
-    public static void pauseGame(HttpServletRequest request, HttpServletResponse response) {
+    public void pauseGame(HttpServletRequest request, HttpServletResponse response) {
         Helpers.handleGameStateChange(
             request,
             response, 
-            (UUID gameId) -> GameService.pauseGame(gameId));
+            (UUID gameId) -> this.gameService.pauseGame(gameId));
     }
 
-    public static void getGame(HttpServletRequest request, HttpServletResponse response) {
+    public void getGame(HttpServletRequest request, HttpServletResponse response) {
         UUID gameId = Helpers.getGameId(request);
 
         if (gameId == null) {
@@ -93,7 +102,7 @@ public class GameController {
             return;
         }
 
-        Game game = GameService.getGame(gameId);
+        IGame game = this.gameService.getGame(gameId);
 
         if (game != null) {
             response.setStatus(HttpServletResponse.SC_OK);
@@ -105,14 +114,14 @@ public class GameController {
         }
     }
 
-    public static void nextGameRound(HttpServletRequest request, HttpServletResponse response) {
+    public void nextGameRound(HttpServletRequest request, HttpServletResponse response) {
         Helpers.handleGameStateChange(
             request, 
             response, 
-            (UUID gameId) -> GameService.nextGameRound(gameId));
+            (UUID gameId) -> this.gameService.nextGameRound(gameId));
     }
 
-    public static void addPlayers(HttpServletRequest request, HttpServletResponse response) {
+    public void addPlayers(HttpServletRequest request, HttpServletResponse response) {
         String body = null;
         List<Player> players = null;
         UUID gameId = Helpers.getGameId(request);
@@ -140,7 +149,7 @@ public class GameController {
         List<Player> addedPlayers = null;
 
         try {
-            addedPlayers = GameService.addPlayersToGame(gameId, players);
+            addedPlayers = this.gameService.addPlayersToGame(gameId, players);
         }
         catch (InvalidPlayerExcpetion ex) {
             Helpers.badRequest(response, "Invalid player");
@@ -161,7 +170,7 @@ public class GameController {
         }
     }
 
-    public static void removePlayer(HttpServletRequest request, HttpServletResponse response) {
+    public void removePlayer(HttpServletRequest request, HttpServletResponse response) {
         UUID gameId = Helpers.getGameId(request);
         String playerName = Helpers.getPlayerName(request);
 
@@ -173,7 +182,7 @@ public class GameController {
         boolean isRemoved = false;
         
         try {
-            isRemoved = GameService.removePlayerFromGame(gameId, playerName);
+            isRemoved = this.gameService.removePlayerFromGame(gameId, playerName);
         }
         catch (IllegalArgumentException ex) {
             Helpers.badRequest(response, "Invalid gameId or playerName");
@@ -189,7 +198,7 @@ public class GameController {
         }
     }
 
-    public static void getLeaderboard(HttpServletRequest request, HttpServletResponse response) {
+    public void getLeaderboard(HttpServletRequest request, HttpServletResponse response) {
         UUID gameId = Helpers.getGameId(request);
 
         if (gameId == null) {
@@ -199,7 +208,7 @@ public class GameController {
 
         Player[] leaderboard = null;
         try {
-            leaderboard = GameService.getLeaderboard(gameId);
+            leaderboard = this.gameService.getLeaderboard(gameId);
         }
         catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -209,44 +218,6 @@ public class GameController {
         if (leaderboard != null) {
             response.setStatus(HttpServletResponse.SC_OK);
             Helpers.writeJsonResponse(response, leaderboard);
-        }
-        else {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-    }
-
-    public static void recordPlayerGuess(HttpServletRequest request, HttpServletResponse response) {
-        String body = null;
-        Guess guess = null;
-
-        try {
-            body = Helpers.getRequestBody(request);
-        }
-        catch (IOException ex) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-
-        try {
-            guess = Helpers.convertJsonToObject(body, new TypeReference<Guess>() {});
-        }
-        catch (JsonProcessingException ex) {
-            Helpers.badRequest(response, "Invalid body");
-            return;
-        }
-
-        GuessResult result = null;
-        try {
-            result = GameService.recordPlayerGuess(guess);
-        }
-        catch(IllegalArgumentException ex) {
-            Helpers.badRequest(response, "Invalid Guess JSON");
-            return;
-        }
-
-        if (result != null) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            Helpers.writeJsonResponse(response, result);
         }
         else {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
