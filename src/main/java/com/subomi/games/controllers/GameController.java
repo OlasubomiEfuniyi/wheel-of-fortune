@@ -1,17 +1,11 @@
 package com.subomi.games.controllers;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.subomi.games.GameService;
-import com.subomi.games.GameType;
-import com.subomi.games.Guess;
-import com.subomi.games.GuessResult;
 import com.subomi.games.Player;
 import com.subomi.games.exceptions.InvalidPlayerExcpetion;
 import com.subomi.games.interfaces.IGame;
@@ -20,50 +14,12 @@ import com.subomi.games.interfaces.IGameService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class GameController {
+public class GameController<T extends IGame> {
 
-    private IGameService gameService;
+    private IGameService<T> gameService;
 
-    public GameController(IGameService gameService) {
+    public GameController(IGameService<T> gameService) {
         this.gameService = gameService;
-    }
-
-    public void createGame(HttpServletRequest request, HttpServletResponse response, GameType gameType) {
-        String roundsParameter = request.getParameter("rounds");
-
-        if (roundsParameter == null) {
-            Helpers.badRequest(response, "Missing parameter: \"rounds\"");
-            return;
-        }
-
-        int rounds = 0;
-
-        try {
-            rounds = Integer.parseInt(roundsParameter);
-        }
-        catch (NumberFormatException ex) {
-            Helpers.badRequest(response, "Invalid rounds parameter");
-            return;
-        }
-        
-        IGame game = null;
-        try {
-            game = this.gameService.createGame(rounds, gameType);
-        }
-        catch (IllegalArgumentException ex) {
-            Helpers.badRequest(response, "Invalid nubmer of rounds.");
-            return;
-        }
-
-        if (game != null) {
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            Helpers.writeJsonResponse(response, game);
-        } 
-        else {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-
     }
 
     public void startGame(HttpServletRequest request, HttpServletResponse response) {

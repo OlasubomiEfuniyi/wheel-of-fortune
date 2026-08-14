@@ -1,7 +1,5 @@
 package com.subomi.games;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -11,28 +9,28 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.subomi.games.interfaces.IGame;
 import com.subomi.games.interfaces.IGameStorage;
+import com.subomi.games.interfaces.IWheelOfFortuneGame;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class GameServiceTest {
+public class WheelOfFortuneGameServiceTest {
 
-    private GameService gameService;
-    private IGameStorage gameStorage;
-    private IGame game;
+    private WheelOfFortuneGameService gameService;
+    @Mock
+    private IGameStorage<IWheelOfFortuneGame> gameStorage;
+    @Mock
+    private IWheelOfFortuneGame game;
     private UUID gameUUID;
 
     @BeforeEach
     public void setup() {
-        this.gameStorage = Mockito.mock(IGameStorage.class);
-        this.gameService = new GameService(this.gameStorage);
-        this.game = Mockito.mock(IGame.class);
+        this.gameService = new WheelOfFortuneGameService(this.gameStorage);
         this.gameUUID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 
         Mockito
@@ -49,7 +47,7 @@ public class GameServiceTest {
 
     @Test
     public void testCreateGame_Creates_New_Game() {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IWheelOfFortuneGame game = this.gameService.createGame(1);
 
         Assertions.assertNotNull(game);
         Assertions.assertEquals(1, game.getNumRounds());
@@ -58,15 +56,15 @@ public class GameServiceTest {
         Assertions.assertEquals(0, game.getPlayers().size());
 
     
-        IGame retrievedGame = this.gameService.getGame(game.getGameId());
+        IWheelOfFortuneGame retrievedGame = this.gameService.getGame(game.getGameId());
         Assertions.assertNotNull(retrievedGame);
         Assertions.assertEquals(game.getGameId(), retrievedGame.getGameId());
     }
 
     @Test
     public void testCreateGame_Creates_Multiple_Games() {
-        IGame game1 = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
-        IGame game2 = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game1 = this.gameService.createGame(1);
+        IGame game2 = this.gameService.createGame(1);
 
         Assertions.assertNotNull(game1);
         Assertions.assertNotNull(game2);
@@ -77,7 +75,7 @@ public class GameServiceTest {
 
     @Test
     public void testCreateGame_Invalid_Rounds() {
-         Assertions.assertThrows(IllegalArgumentException.class, () -> this.gameService.createGame(0, GameType.WHEEL_OF_FORTUNE));
+         Assertions.assertThrows(IllegalArgumentException.class, () -> this.gameService.createGame(0));
     }
 
     Stream<Arguments> stateChangers() {
@@ -103,7 +101,7 @@ public class GameServiceTest {
     @ParameterizedTest
     @MethodSource("stateChangers")
     public void testStateChange(Function<UUID, IGame> stateChanger, GameState state) {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(1);
 
         Assertions.assertEquals(GameState.CREATED, game.getGameState());
 
@@ -120,7 +118,7 @@ public class GameServiceTest {
 
     @Test
     public void testNextGameRound_Progresses_To_Next_Round() {
-        IGame game = this.gameService.createGame(2, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(2);
 
         game.start();
         
@@ -137,7 +135,7 @@ public class GameServiceTest {
 
     @Test
     public void testAddPlayersToGame_Adds_Players() {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(1);
         List<Player> players = Arrays.asList(new Player("subomi"), new Player("nifemi"));
 
         List<Player> addedPlayers = this.gameService.addPlayersToGame(game.getGameId(), players);
@@ -158,7 +156,7 @@ public class GameServiceTest {
 
     @Test
     public void testRemovePlayerFromGame_Removes_Player() {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(1);
         List<Player> players = Arrays.asList(new Player("subomi"), new Player("nifemi"));
 
         this.gameService.addPlayersToGame(game.getGameId(), players);
@@ -180,7 +178,7 @@ public class GameServiceTest {
 
     @Test
     public void testRemovePlayerFromGame_Player_Not_Found() {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(1);
         List<Player> players = Arrays.asList(new Player("subomi"), new Player("nifemi"));
 
         this.gameService.addPlayersToGame(game.getGameId(), players);
@@ -192,11 +190,10 @@ public class GameServiceTest {
 
     @Test
     public void testGetLeaderboard() {
-        IGame game = this.gameService.createGame(1, GameType.WHEEL_OF_FORTUNE);
+        IGame game = this.gameService.createGame(1);
 
         Player[] leaderboard = this.gameService.getLeaderboard(game.getGameId());
 
         Assertions.assertNotNull(leaderboard);
     }
-
 }

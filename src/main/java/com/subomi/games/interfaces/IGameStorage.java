@@ -2,8 +2,8 @@ package com.subomi.games.interfaces;
 
 import java.util.UUID;
 
-public interface IGameStorage {
-    public void saveGame(IGame game);
+public interface IGameStorage<T extends IGame> {
+    public void saveGame(T game);
 
-    public IGame getGame(UUID gameId);
+    public T getGame(UUID gameId);
 }

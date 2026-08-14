@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.subomi.games.GameType;
 import com.subomi.games.Guess;
 import com.subomi.games.GuessResult;
+import com.subomi.games.interfaces.IWheelOfFortuneGame;
 import com.subomi.games.interfaces.IWheelOfFortuneGameService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,40 @@ public class WheelOfFortuneGameController extends GameController {
     }
 
     public void createGame(HttpServletRequest request, HttpServletResponse response) {
-        super.createGame(request, response, GameType.WHEEL_OF_FORTUNE);
+        String roundsParameter = request.getParameter("rounds");
+
+        if (roundsParameter == null) {
+            Helpers.badRequest(response, "Missing parameter: \"rounds\"");
+            return;
+        }
+
+        int rounds = 0;
+
+        try {
+            rounds = Integer.parseInt(roundsParameter);
+        }
+        catch (NumberFormatException ex) {
+            Helpers.badRequest(response, "Invalid rounds parameter");
+            return;
+        }
+        
+        IWheelOfFortuneGame game = null;
+        try {
+            game = this.gameService.createGame(rounds);
+        }
+        catch (IllegalArgumentException ex) {
+            Helpers.badRequest(response, "Invalid nubmer of rounds.");
+            return;
+        }
+
+        if (game != null) {
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            Helpers.writeJsonResponse(response, game);
+        } 
+        else {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
     }
 
     public void recordPlayerGuess(HttpServletRequest request, HttpServletResponse response) {
